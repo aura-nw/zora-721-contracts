@@ -22,7 +22,7 @@ contract DeployNewERC721Drop is Script {
 
     string configFile;
 
-    function _getKey(string memory key) internal returns (address result) {
+    function _getKey(string memory key) internal view returns (address result) {
         (result) = abi.decode(vm.parseJson(configFile, key), (address));
     }
 
@@ -34,102 +34,110 @@ contract DeployNewERC721Drop is Script {
         console.log("SENDER", sender);
 
         console2.log("Starting ---");
+        configFile = vm.readFile(string.concat("./addresses/", Strings.toString(chainID), ".json"));
 
-        configFile = vm.readFile(
-            string.concat("./addresses/", Strings.toString(chainID), ".json")
-        );
-        address creatorProxy = _getKey("ZORA_NFT_CREATOR_PROXY");
+        address creatorProxy = _getKey(".ZORA_NFT_CREATOR_PROXY");
 
-        address newImpl = _getKey("ERC721DROP_IMPL");
+        address newImpl = _getKey(".ERC721DROP_IMPL");
 
         console2.log("Setup contracts ---");
 
-        vm.startPrank(sender);
+        // vm.startPrank(sender);
+        vm.startBroadcast(sender);
 
         ZoraNFTCreatorV1 zoraNFTCreator = ZoraNFTCreatorV1(creatorProxy);
-        ERC721Drop drop = ERC721Drop(payable(zoraNFTCreator.createEdition(
-            "name",
-            "symbol",
-            100,
-            500,
-            payable(sender),
-            payable(sender),
-            IERC721Drop.SalesConfiguration({
-                publicSaleStart: 0,
-                publicSaleEnd: type(uint64).max,
-                presaleStart: 0,
-                presaleEnd: 0,
-                publicSalePrice: 0.1 ether,
-                maxSalePurchasePerAddress: 0,
-                presaleMerkleRoot: bytes32(0)
-            }),
-            "desc",
-            "animation",
-            "image"
-        )));
+        ERC721Drop drop = ERC721Drop(
+            payable(
+                zoraNFTCreator.createDrop(
+                    "TestDrop",
+                    "TD1",
+                    sender,
+                    500,
+                    0,
+                    payable(sender),
+                    IERC721Drop.SalesConfiguration({
+                        publicSaleStart: 0,
+                        publicSaleEnd: type(uint64).max,
+                        presaleStart: 0,
+                        presaleEnd: 0,
+                        publicSalePrice: 0.001 ether,
+                        maxSalePurchasePerAddress: 0,
+                        presaleMerkleRoot: bytes32(0)
+                    }),
+                    "https://ipfs.io/ipfs/QmTKws2sZ6Q3mKZ9bmZPZFP2bdRtmydxLWUg3yZfT6Yhzd",
+                    "https://ipfs.io/ipfs/QmTcTYJtMBN3QThvEqRMCarPVkegGsXJGLYYwGN22zoy53"
+                )
+            )
+        );
 
-        drop.adminMint(sender, 4);
+        string memory cUri = drop.contractURI();
+        console2.log("Contract URI", cUri);
 
-        assert(drop.balanceOf(sender) == 4);
+        drop.adminMint(sender, 2);
 
-        vm.stopPrank();
+        assert(drop.balanceOf(sender) == 2);
 
-        FactoryUpgradeGate gate = FactoryUpgradeGate(_getKey("FACTORY_UPGRADE_GATE"));
-        address[] memory _supportedPrevImpls = new address[](1);
-        _supportedPrevImpls[0] = zoraNFTCreator.implementation();
-        vm.prank(gate.owner());
-        gate.registerNewUpgradePath(newImpl, _supportedPrevImpls);
+        // vm.stopPrank();
+        vm.stopBroadcast();
 
-        vm.startPrank(sender);
-        drop.upgradeTo(newImpl);
+        // FactoryUpgradeGate gate = FactoryUpgradeGate(_getKey(".FACTORY_UPGRADE_GATE"));
+        // address[] memory _supportedPrevImpls = new address[](1);
+        // _supportedPrevImpls[0] = zoraNFTCreator.implementation();
+        // vm.prank(gate.owner());
+        // gate.registerNewUpgradePath(newImpl, _supportedPrevImpls);
 
-        drop.adminMint(sender, 4);
-        assert(drop.balanceOf(sender) == 8);
+        // vm.startPrank(sender);
+        // drop.upgradeTo(newImpl);
 
-        address recipient2 = address(0x9992);
-        vm.deal(recipient2, 1 ether);
-        vm.stopPrank();
-        vm.prank(recipient2);
-        drop.purchase{value: 0.1 ether + 0.000777 ether}(1);
-        assert(drop.balanceOf(recipient2) == 1);
+        // drop.adminMint(sender, 4);
+        // assert(drop.balanceOf(sender) == 8);
 
-        vm.prank(zoraNFTCreator.owner());
-        zoraNFTCreator.upgradeTo(_getKey("ZORA_NFT_CREATOR_V1_IMPL"));
+        // address recipient2 = address(0x9992);
+        // vm.deal(recipient2, 1 ether);
+        // vm.stopPrank();
+        // vm.prank(recipient2);
+        // drop.purchase{value: 0.1 ether + 0.000777 ether}(1);
+        // assert(drop.balanceOf(recipient2) == 1);
 
-        ERC721Drop drop2 = ERC721Drop(payable(zoraNFTCreator.createEdition(
-            "name",
-            "symbol",
-            100,
-            500,
-            payable(sender),
-            payable(sender),
-            IERC721Drop.SalesConfiguration({
-                publicSaleStart: 0,
-                publicSaleEnd: type(uint64).max,
-                presaleStart: 0,
-                presaleEnd: 0,
-                publicSalePrice: 0.1 ether,
-                maxSalePurchasePerAddress: 0,
-                presaleMerkleRoot: bytes32(0)
-            }),
-            "desc",
-            "animation",
-            "image"
-        )));
-        assert(drop2.balanceOf(sender) == 0);
+        // vm.prank(zoraNFTCreator.owner());
+        // zoraNFTCreator.upgradeTo(_getKey(".ZORA_NFT_CREATOR_V1_IMPL"));
 
+        // ERC721Drop drop2 = ERC721Drop(
+        //     payable(
+        //         zoraNFTCreator.createEdition(
+        //             "name",
+        //             "symbol",
+        //             100,
+        //             500,
+        //             payable(sender),
+        //             payable(sender),
+        //             IERC721Drop.SalesConfiguration({
+        //                 publicSaleStart: 0,
+        //                 publicSaleEnd: type(uint64).max,
+        //                 presaleStart: 0,
+        //                 presaleEnd: 0,
+        //                 publicSalePrice: 0.1 ether,
+        //                 maxSalePurchasePerAddress: 0,
+        //                 presaleMerkleRoot: bytes32(0)
+        //             }),
+        //             "desc",
+        //             "animation",
+        //             "image"
+        //         )
+        //     )
+        // );
+        // assert(drop2.balanceOf(sender) == 0);
 
-        address recipient3 = address(0x9992);
-        vm.deal(recipient3, 1 ether);
-        vm.stopPrank();
-        vm.prank(recipient3);
-        drop2.purchase{value: 0.1 ether + 0.000777 ether}(1);
-        assert(drop2.balanceOf(recipient3) == 1);
+        // address recipient3 = address(0x9992);
+        // vm.deal(recipient3, 1 ether);
+        // vm.stopPrank();
+        // vm.prank(recipient3);
+        // drop2.purchase{value: 0.1 ether + 0.000777 ether}(1);
+        // assert(drop2.balanceOf(recipient3) == 1);
 
         // Next steps:
         // 1. Setup upgrade path
         // 2. Upgrade creator to new contract
         // 3. Update addresses folder
-
     }
 }
