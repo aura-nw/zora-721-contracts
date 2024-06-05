@@ -507,7 +507,7 @@ contract ERC721Drop is
 
         uint256 salePrice = salesConfig.publicSalePrice;
 
-        _handleRewards(msg.value, quantity, salePrice, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
+        // _handleRewards(msg.value, quantity, salePrice, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
 
         _mintNFTs(recipient, quantity);
 
@@ -675,7 +675,7 @@ contract ERC721Drop is
 
         _requireCanPurchasePresale(msgSender, quantity, maxQuantity);
 
-        _handleRewards(msg.value, quantity, pricePerToken, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
+        // _handleRewards(msg.value, quantity, pricePerToken, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
 
         _mintNFTs(msgSender, quantity);
 
