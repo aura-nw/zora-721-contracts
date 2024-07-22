@@ -1,12 +1,12 @@
-import { writeFile, readFile } from "fs/promises";
-import esMain from "es-main";
-import { glob } from "glob";
+import { writeFile, readFile } from 'fs/promises';
+import esMain from 'es-main';
+import { glob } from 'glob';
 
 async function copyEnvironmentRunFiles(isDeploy) {
   const latestFiles = await glob(
     isDeploy
-      ? "broadcast/Deploy.s.sol/*/run-latest.json"
-      : "broadcast/UpgradeERC721DropFactory.s.sol/*/run-latest.json"
+      ? 'broadcast/Deploy.s.sol/*/run-latest.json'
+      : 'broadcast/UpgradeERC721DropFactory.s.sol/*/run-latest.json'
   );
 
   for (const file of latestFiles) {
@@ -25,16 +25,16 @@ async function copyEnvironmentRunFiles(isDeploy) {
         filePath,
         JSON.stringify(
           {
-            ...JSON.parse(returns["0"].value),
+            ...JSON.parse(returns['0'].value),
             timestamp,
-            commit,
+            commit
           },
           null,
           2
         )
       );
     } else {
-      console.log("old run-latest file, skipping");
+      console.log('old run-latest file, skipping');
     }
   }
 }
@@ -42,9 +42,8 @@ async function copyEnvironmentRunFiles(isDeploy) {
 if (esMain(import.meta)) {
   const command = process.argv[2];
   let deploy = false;
-  if (command === "deploy") {
+  if (command === 'deploy') {
     deploy = true;
   }
   await copyEnvironmentRunFiles(deploy);
 }
-
