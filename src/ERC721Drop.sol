@@ -450,6 +450,7 @@ contract ERC721Drop is
         payable
         nonReentrant
         onlyPublicSaleActive
+        canMintTokens(quantity)
         returns (uint256)
     {
         return _handleMintWithRewards(msg.sender, quantity, "", address(0));
@@ -464,6 +465,7 @@ contract ERC721Drop is
         payable
         nonReentrant
         onlyPublicSaleActive
+        canMintTokens(quantity)
         returns (uint256)
     {
         return _handleMintWithRewards(msg.sender, quantity, comment, address(0));
@@ -478,7 +480,8 @@ contract ERC721Drop is
         external 
         payable 
         nonReentrant 
-        onlyPublicSaleActive 
+        onlyPublicSaleActive
+        canMintTokens(quantity)
         returns (uint256) 
     {
         return _handleMintWithRewards(recipient, quantity, comment, address(0));
@@ -507,7 +510,9 @@ contract ERC721Drop is
 
         uint256 salePrice = salesConfig.publicSalePrice;
 
-        _handleRewards(msg.value, quantity, salePrice, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
+        _requireValidFunding(msg.value, quantity, salePrice);
+
+        // _handleRewards(msg.value, quantity, salePrice, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
 
         _mintNFTs(recipient, quantity);
 
@@ -675,7 +680,9 @@ contract ERC721Drop is
 
         _requireCanPurchasePresale(msgSender, quantity, maxQuantity);
 
-        _handleRewards(msg.value, quantity, pricePerToken, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
+        _requireValidFunding(msg.value, quantity, pricePerToken);
+
+        // _handleRewards(msg.value, quantity, pricePerToken, config.fundsRecipient != address(0) ? config.fundsRecipient : address(this), createReferral, mintReferral);
 
         _mintNFTs(msgSender, quantity);
 
@@ -1221,6 +1228,16 @@ contract ERC721Drop is
     function _requireCanMintQuantity(uint256 quantity) internal view {
         if (quantity + _totalMinted() > config.editionSize) {
             revert Mint_SoldOut();
+        }
+    }
+
+    function _requireValidFunding(uint256 msgValue, uint256 numTokens, uint256 salePrice) internal {
+        if(salePrice != 0) {
+            uint256 totalSale = numTokens * salePrice;
+
+            if (msgValue != totalSale) {
+                revert INVALID_ETH_AMOUNT();
+            }
         }
     }
 

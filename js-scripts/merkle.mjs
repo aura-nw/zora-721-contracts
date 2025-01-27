@@ -1,13 +1,13 @@
-import { MerkleTree } from "merkletreejs";
-import { defaultAbiCoder } from "@ethersproject/abi";
-import { hexValue } from "@ethersproject/bytes";
-import { getAddress } from "@ethersproject/address";
-import keccak256 from "keccak256";
+import { MerkleTree } from 'merkletreejs';
+import { defaultAbiCoder } from '@ethersproject/abi';
+import { hexValue } from '@ethersproject/bytes';
+import { getAddress } from '@ethersproject/address';
+import keccak256 from 'keccak256';
 
 export function hashForEntry(entry) {
   return keccak256(
     defaultAbiCoder.encode(
-      ["address", "uint256", "uint256"],
+      ['address', 'uint256', 'uint256'],
       [getAddress(entry.minter), entry.maxCount, entry.price]
     )
   );
@@ -33,6 +33,6 @@ export function makeTree(entries) {
   return {
     tree,
     root: tree.getHexRoot(),
-    entries,
+    entries
   };
 }
